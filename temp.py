@@ -1,7 +1,5 @@
 # Space War Game
-#
 # John Wilkes
-#
 # 2-4 players
 # Joysticks supported: Logitech Dual Action, Logitech Gamepad F310
 
@@ -9,65 +7,7 @@ from livewires import games
 import color, copy, math, random
 pygame = games.pygame
 
-games.init(900, 650, 50)#, "Space War")
-
-### test ###
-def out(text):
-    file = open("test.txt", "a")
-    file.write(str(text) + "\n")
-    file.close()
-############
-### Not Currently Used ###
-class Jstick_num(games.Text):
-    def __init__(self, game):
-        self.game = game
-        if pygame.joystick.get_count() < Game.MIN_JSTICKS:
-            x = games.screen.width/2
-            y = games.screen.height/2
-            left = None
-            bottom = None
-            size = 75
-        else:
-            x = 0
-            y = 0
-            left = 10
-            bottom = games.screen.height - 10
-            size = 50
-            self.game.init_joysticks()
-            self.game.setup()
-        super(Jstick_num, self).__init__(self.value_str(), size, color.RED,
-                                         x=x, y=y, left=left, bottom=bottom,
-                                         interval=25)
-
-    def tick(self):
-        prev = pygame.joystick.get_count()
-        pygame.joystick.quit()
-        pygame.joystick.init()
-        self.game.init_joysticks()
-        now = pygame.joystick.get_count()
-        if now != prev:
-            self.value = self.value_str()
-            if pygame.joystick.get_count() < Game.MIN_JSTICKS and prev >= Game.MIN_JSTICKS:
-                for sprite in games.screen.all_objects:
-                    if sprite != self:
-                        sprite.destroy()
-                self.x = games.screen.width/2
-                self.y = games.screen.height/2
-                self.size = 75
-            elif pygame.joystick.get_count() >= Game.MIN_JSTICKS and prev < Game.MIN_JSTICKS:
-                self.left = 10
-                self.bottom = games.screen.height - 10
-                self.size = 50
-                self.game.setup()
-
-    def value_str(self):
-        num = pygame.joystick.get_count()
-        string = str(num) + " controller"
-        if num != 1:
-            string += "s"
-        return string
-
-############################
+games.init(900, 650, 50, "Space War")
 
 class Jstick(object):
     def __init__(self, id):
@@ -116,7 +56,7 @@ class Chooser(games.Text):
     def __init__(self, jstick, size, color, choices, choice=None, x=0, y=0,
                  left=None, right=None, top=None, bottom=None):
         self.jstick = jstick
-        if choice == None or choice not in choices:
+        if choice == None:
             choice = choices[0]
         self.__choices = choices
         self.__choice = choice
@@ -212,7 +152,7 @@ class Map_Chooser(games.Text):
     def load_images(self, choices):
         self.__images = []
         for num in choices:
-            self.__images.append(games.load_image("images/map"+str(num)+".bmp",
+            self.__images.append(games.load_image("images\\map"+str(num)+".bmp",
                                                   False))
 
     def destroy(self):
@@ -231,7 +171,7 @@ class Woundable(games.Sprite):
 
 class Smoke(games.Sprite):
     def __init__(self, x, y):
-        super(Smoke, self).__init__(games.load_image("images/smoke.bmp"),
+        super(Smoke, self).__init__(games.load_image("images\\smoke.bmp"),
                                     x=x, y=y, is_collideable=False)
         self.alpha = 255
 
@@ -249,7 +189,7 @@ class Laser(games.Sprite):
         self.points = points
         self.is_solid = False
         self.is_reflector = False
-        super(Laser, self).__init__(games.load_image("images/laser"+str(num)+".bmp"),
+        super(Laser, self).__init__(games.load_image("images\\laser"+str(num)+".bmp"),
                                     angle, x, y,
                                     dx=self.SPEED * math.sin(math.radians(angle)),
                                     dy=self.SPEED * -math.cos(math.radians(angle)))
@@ -263,18 +203,6 @@ class Laser(games.Sprite):
             if issubclass(type(sprite), Woundable) and sprite != self.man:
                 sprite.wound(self.points)
 
-    def bounce(self, sprite):
-        if (self.top >= sprite.bottom - Laser.SPEED or self.bottom <= sprite.top + Laser.SPEED) and\
-           (self.left >= sprite.right - Laser.SPEED or self.right <= sprite.left + Laser.SPEED):
-            self.angle += 180#temp
-        elif self.top >= sprite.bottom - Laser.SPEED or self.bottom <= sprite.top + Laser.SPEED:
-            self.angle = 180 - self.angle
-        else:
-            self.angle = 360 - self.angle
-        self.dx = self.SPEED * math.sin(math.radians(self.angle))
-        self.dy = self.SPEED * -math.cos(math.radians(self.angle))
-        self.man = None
-
 class Missile(Woundable):
     SPEED = 11
     POINTS = 90
@@ -282,7 +210,7 @@ class Missile(Woundable):
         self.man = man
         self.is_solid = True
         self.is_reflector = False
-        super(Missile, self).__init__(games.load_image("images/missile.bmp"),
+        super(Missile, self).__init__(games.load_image("images\\missile.bmp"),
                                       angle, x, y,
                                       dx=self.SPEED * math.sin(math.radians(angle)),
                                       dy=self.SPEED * -math.cos(math.radians(angle)))
@@ -302,7 +230,7 @@ class Missile(Woundable):
         self.explode()
 
 class Explosion(games.Animation):
-    main_image = games.load_image("images/explosion.bmp")
+    main_image = games.load_image("images\\explosion.bmp")
     sound = games.load_sound("sounds\\explosion.wav")
     def __init__(self, x, y, size, points):
         images = []
@@ -330,7 +258,7 @@ class Grenade(Woundable):
         self.life = Grenade.LIFETIME
         self.is_solid = True
         self.is_reflector = False
-        super(Grenade, self).__init__(games.load_image("images/grenade.bmp"),
+        super(Grenade, self).__init__(games.load_image("images\\grenade.bmp"),
                                       angle, x, y,
                                       dx=Grenade.SPEED * math.sin(math.radians(angle)),
                                       dy=Grenade.SPEED * -math.cos(math.radians(angle)))
@@ -353,47 +281,6 @@ class Grenade(Woundable):
 
     def wound(self, points, explosion=None):
         self.explode()
-
-### Not Currently Used ###
-class Mine(Woundable):
-##    main_image = games.load_image("images/mine.bmp")
-##    light_image = games.load_image("images/mine1.bmp")
-    TIMER = 80
-    ON = 10
-    OFF = 0
-    PAD = 35
-    def __init__(self, man, x, y):
-        self.man = man
-        self.is_solid = False
-        self.is_reflector = False
-        self.timer = Mine.TIMER
-        super(Mine, self).__init__(Mine.main_image, x=x, y=y)
-
-    def update(self):
-        self.timer -= 1
-        if self.timer == Mine.ON:
-            self.image = Mine.light_image
-        elif self.timer == Mine.OFF:
-            self.image = Mine.main_image
-            self.timer = Mine.TIMER
-
-        if self.man != None and (self.man.right < self.x - Mine.PAD or self.man.left > self.x + Mine.PAD or self.man.bottom < self.y - Mine.PAD or self.man.top > self.y + Mine.PAD):
-            self.man = None
-
-        for man in Man.all:
-            if man != self.man and (self.x - Mine.PAD <= man.right <= self.x + Mine.PAD or self.x - Mine.PAD <= man.left <= self.x + Mine.PAD) and (self.y - Mine.PAD <= man.bottom <= self.y + Mine.PAD or self.y - Mine.PAD <= man.top <= self.y + Mine.PAD):
-                self.explode()
-
-    def explode(self):
-        explosion = Explosion(self.x, self.y, 75)
-        games.screen.add(explosion)
-        explosion.lower()
-        self.destroy()
-
-    def wound(self, points, explosion=None):
-        if points >= 45:
-            self.explode()
-################
 
 class Laser1(games.Sprite):
     WIDTH = 6
@@ -432,17 +319,14 @@ class Laser1(games.Sprite):
         super(Laser1, self).destroy()
 
 class Generator(Woundable):
-    HEALTH = 180
-    OFF = 500
-    image = games.load_image("images/generator.bmp")
+    image = games.load_image("images\\generator.bmp")
     def __init__(self, length, angle=0, x=0, y=0, top=None, bottom=None,
                  left=None, right=None):
         super(Generator, self).__init__(Generator.image, angle, x, y, top,
                                         bottom, left, right)
-        self.health = Generator.HEALTH
+        self.health = 180
         self.is_solid = True
         self.is_reflector = False
-        self.off = 0
 
         x = 0
         y = 0
@@ -465,31 +349,18 @@ class Generator(Woundable):
         self.laser = Laser1(length, angle, x, y, top, bottom, left, right)
         games.screen.add(self.laser)
 
-    def update(self):
-        if self.off > 0:
-            self.off -= 1
-            if self.off == 0:
-                self.turn_on()
-
     def wound(self, points, explosion=None):
-        if self.health > 0:
-            self.health -= points
+        self.health -= points
         if self.health <= 0:
-            self.turn_off()
+            self.die()
 
-    def turn_on(self):
-        games.screen.add(self.laser.glow)
-        games.screen.add(self.laser)
-        self.health = Generator.HEALTH
-
-    def turn_off(self):
-        games.screen.remove(self.laser.glow)
-        games.screen.remove(self.laser)
-        self.off = Generator.OFF
+    def die(self):
+        self.laser.destroy()
+        self.destroy()
 
 class Health(games.Sprite):
     COLORS = {"red" : color.RED, "blue" : color.BLUE, "green" : color.GREEN, "yellow" : color.YELLOW}
-    meter_image = games.load_image("images/health_meter.bmp", False)
+    meter_image = games.load_image("images\\health_meter.bmp", False)
     def __init__(self, color, top=None, bottom=None, left=None, right=None):
         super(Health, self).__init__(Health.meter_image.convert(), top=top,
                                      bottom=bottom, left=left, right=right,
@@ -512,10 +383,6 @@ class Bunker(Woundable):
         image = pygame.surface.Surface((width, height))
         image.fill(Bunker.COLOR)
         if is_reflector:
-##            pygame.draw.lines(image, Bunker.MIROR_COLOR, True,
-##                              ((0, 0), (image.get_width()-1, 0),
-##                               (image.get_width()-1, image.get_height()-1),
-##                               (0, image.get_height()-1)))
             pygame.draw.rect(image, Bunker.MIROR_COLOR, image.get_rect(), 1)
         super(Bunker, self).__init__(image, x=x, y=y, top=top, bottom=bottom,
                                      left=left, right=right)
@@ -591,10 +458,9 @@ class Bunker(Woundable):
 
 class Amo(Woundable):
     TIMER = 750
-    sound = games.load_sound("sounds\\cockgun.wav")
     def __init__(self, x, y):
-        self.main_image = games.load_image("images/amo.bmp", False)
-        self.blank_image = games.load_image("images/blank_image.bmp")
+        self.main_image = games.load_image("images\\amo.bmp", False)
+        self.blank_image = games.load_image("images\\blank_image.bmp")
         super(Amo, self).__init__(self.main_image, x=x, y=y)
         self.is_solid = False
         self.is_reflector = False
@@ -608,7 +474,6 @@ class Amo(Woundable):
         else:
             for sprite in self.overlapping_sprites:
                 if type(sprite) == Man:
-                    Amo.sound.play()
                     if sprite.weapon == 1:
                         num = 20
                     elif sprite.weapon == 2:
@@ -675,7 +540,7 @@ class Man(Woundable):
         self.health = self.MAX_HEALTH
         self.is_solid = True
         self.is_reflector = False
-        super(Man, self).__init__(games.load_image("images/"+self.game.colors[team]+"_man"+str(weapon)+"-"+str(Man.teams[self.team])+".bmp"),
+        super(Man, self).__init__(games.load_image("images\\"+self.game.colors[team]+"_man"+str(weapon)+"-"+str(Man.teams[self.team])+".bmp"),
                                   x=x, y=y)
         Man.teams[self.team] += 1
         if num == 0:
@@ -800,19 +665,6 @@ class Man(Woundable):
         self.gmeter.value = self.grenades
         self.gmeter.left = left
 
-    ### Not Currently Used ###
-    def mine(self):
-        mine = Mine(self,
-                    self.x + self.mine_pad * math.sin(math.radians(self.angle)),
-                    self.y + self.mine_pad * -math.cos(math.radians(self.angle)))
-        games.screen.add(mine)
-        mine.lower()
-        self.grenades -= 1
-        left = self.gmeter.left
-        self.gmeter.value = self.grenades
-        self.gmeter.left = left
-    ##########################
-
     def rotate(self, angle):
         pad = 4
         self.angle = angle
@@ -936,7 +788,7 @@ class Weapon_man(games.Sprite):
     def __init__(self, game, w_num, team_num, x, y, chooser):
         self.num = Weapon_man.teams[team_num]
         Weapon_man.teams[team_num] += 1
-        super(Weapon_man, self).__init__(games.load_image("images/"+game.colors[team_num]+"_man"+str(w_num+1)+"-"+str(self.num)+".bmp"),
+        super(Weapon_man, self).__init__(games.load_image("images\\"+game.colors[team_num]+"_man"+str(w_num+1)+"-"+str(self.num)+".bmp"),
                                          x=x, y=y)
         self.game = game
         self.w_num = w_num
@@ -946,7 +798,7 @@ class Weapon_man(games.Sprite):
     def update(self):
         if self.game.weapon_choices.index(self.chooser.choice) != self.w_num:
             self.w_num = self.game.weapon_choices.index(self.chooser.choice)
-            self.image = games.load_image("images/"+self.game.colors[self.team_num]+"_man"+str(self.w_num+1)+"-"+str(self.num)+".bmp")
+            self.image = games.load_image("images\\"+self.game.colors[self.team_num]+"_man"+str(self.w_num+1)+"-"+str(self.num)+".bmp")
 
     def destroy(self):
         Weapon_man.teams = [0, 0, 0, 0]
@@ -955,17 +807,9 @@ class Weapon_man(games.Sprite):
 class Game(object):
     MIN_JSTICKS = 2
     MAX_PLAYERS = 4
-    MAP_NUMS = {"2" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],#test(remove 13)
-                "3" : [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],#test(remove 13)
-                "4" : [2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]}#test(remove 13)
-    TEAMS = {"P1 vs. P2 vs. P3"        : ([1, 1, 1], [0, 1, 2]),
-             "P1 & P2 vs. P3"          : ([2, 1], [0, 0, 1]),
-             "P1 vs. P2 & P3"          : ([2, 1], [1, 0, 0]),
-             "P1 & P3 vs. P2"          : ([2, 1], [0, 1, 0]),
-             "P1 vs. P2 vs. P3 vs. P4" : ([1, 1, 1, 1], [0, 1, 2, 3]),
-             "P1 & P2 vs. P3 & P4"     : ([2, 2], [0, 0, 1, 1]),
-             "P1 & P3 vs. P2 & P4"     : ([2, 2], [0, 1, 0, 1]),
-             "P1 & P4 vs. P2 & P3"     : ([2, 2], [0, 1, 1, 0])}
+    MAP_NUMS = {"2" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+                "3" : [1, 2, 4, 5, 6, 7, 8, 9, 10, 11],
+                "4" : [2, 4, 5, 6, 7, 8, 9, 10, 11]}
     def __init__(self):
         self.colors = ("red", "blue", "green", "yellow")
         self.tcolors = (color.RED, color.BLUE, color.GREEN, color.YELLOW) # tuple colors
@@ -996,16 +840,9 @@ class Game(object):
             jstick = Jstick(i)
             self.joysticks.append(jstick)
 
-    ### Not Currently Used ###
-    def jstick_check(self):
-        games.screen.clear()
-        text = Jstick_num(self)
-        games.screen.add(text)
-    ##########################
-
     def setup(self):
         games.screen.clear()
-        games.screen.background = games.load_image("images/black_background.bmp", False)
+        games.screen.background = games.load_image("images\\black_background.bmp", False)
         self.setup_text = Setup(self, self.joysticks[0], right=games.screen.width-10,
                            bottom=games.screen.height-10)
         games.screen.add(self.setup_text)
@@ -1045,24 +882,29 @@ class Game(object):
                                       x=games.screen.width/2, y=games.screen.height/2)
             games.screen.add(self.teams_text)
         elif self.num_players == 4:
-            text = games.Text("Set teams:", 70, color.WHITE,
-                              x=games.screen.width/2, y=games.screen.height/4)
-            games.screen.add(text)
-            self.teams_text = Chooser(self.joysticks[0], 70, color.WHITE,
-                                      ["P1 vs. P2 vs. P3 vs. P4", "P1 & P2 vs. P3 & P4",
-                                       "P1 & P3 vs. P2 & P4", "P1 & P4 vs. P2 & P3"],
-                                      self.teams_choice,
-                                      x=games.screen.width/2, y=games.screen.height/2)
-            games.screen.add(self.teams_text)
+            self.setup_text.new_func()#temp
 
     def pick_weapons(self):
         if self.num_players == 2:
             self.teams = [1, 1]
             team_nums = [0, 1]
-        else:
+        elif self.num_players == 3:
             self.teams_choice = self.teams_text.choice
-            self.teams = copy.deepcopy(Game.TEAMS[self.teams_choice][0])
-            team_nums = Game.TEAMS[self.teams_choice][1]
+            if self.teams_choice == "P1 vs. P2 vs. P3":
+                self.teams = [1, 1, 1]
+                team_nums = [0, 1, 2]
+            elif self.teams_choice == "P1 & P2 vs. P3":
+                self.teams = [2, 1]
+                team_nums = [0, 0, 1]
+            elif self.teams_choice == "P1 vs. P2 & P3":
+                self.teams = [2, 1]
+                team_nums = [1, 0, 0]
+            elif self.teams_choice == "P1 & P3 vs. P2":
+                self.teams = [2, 1]
+                team_nums = [0, 1, 0]
+        elif self.num_players == 4:
+            self.teams = [1, 1, 1, 1]#temp
+            team_nums = [0, 1, 2, 3]#temp
         self.weapon_choosers = []
         for i in range(self.num_players):
             y = games.screen.height * (i + 1) / (self.num_players + 1)
@@ -1084,7 +926,7 @@ class Game(object):
         for i in range(len(self.weapon_choosers)):
             self.weapons[i] = self.weapon_choices.index(self.weapon_choosers[i].choice)
         games.screen.clear()
-        games.screen.background = games.load_image("images/gray_background.bmp", False)
+        games.screen.background = games.load_image("images\\gray_background.bmp", False)
         positions = (((50, 500), (850, 325), (450, 50)),
                      ((350, 600), (800, 150), (625, 50), (400, 180)),
                      ((50, 100), (850, 100)),
@@ -1095,9 +937,7 @@ class Game(object):
                      ((50, 50), (850, 50), (50, 600), (850, 600)),
                      ((50, 275), (850, 275), (50, 375), (850, 375)),
                      ((40, 150), (750, 40), (150, 610), (860, 500)),
-                     ((37, 50), (863, 600), (50, 613), (850, 37)),
-                     ((400, 40), (100, 600), (500, 40), (800, 600)),
-                     ((100, 100), (100, 200), (100, 300), (100, 400)))#test
+                     ((37, 50), (863, 600), (50, 613), (850, 37)))
         self.terrain(self.map_num)
         self.add_men(positions[self.map_num-1])
 
@@ -1117,8 +957,18 @@ class Game(object):
     def add_men(self, positions):
         if self.num_players == 2:
             team_nums = [0, 1]
-        else:
-            team_nums = Game.TEAMS[self.teams_choice][1]
+        elif self.num_players == 3:
+            self.teams_choice = self.teams_text.choice
+            if self.teams_choice == "P1 vs. P2 vs. P3":
+                team_nums = [0, 1, 2]
+            elif self.teams_choice == "P1 & P2 vs. P3":
+                team_nums = [0, 0, 1]
+            elif self.teams_choice == "P1 vs. P2 & P3":
+                team_nums = [1, 0, 0]
+            elif self.teams_choice == "P1 & P3 vs. P2":
+                team_nums = [0, 1, 0]
+        elif self.num_players == 4:
+            team_nums = [0, 1, 2, 3]#temp
         for i in range(self.num_players):
             man = Man(self, i, self.joysticks[i], positions[i][0],
                       positions[i][1], self.weapons[i]+1, team_nums[i])
@@ -1369,44 +1219,6 @@ class Game(object):
             bunker = Bunker(710, 40, right=games.screen.width, top=75)
             games.screen.add(bunker)
             bunker = Bunker(40, 230, left=bunker.left, top=bunker.bottom)
-            games.screen.add(bunker)
-        elif num == 12:
-            amo = Amo(games.screen.width/12, 50)
-            games.screen.add(amo)
-            amo = Amo(games.screen.width*11/12, 50)
-            games.screen.add(amo)
-            generator = Generator(288, 0, x=games.screen.width/6, y=299)
-            games.screen.add(generator)
-            generator = Generator(288, 0, x=games.screen.width*5/6, y=299)
-            games.screen.add(generator)
-            bunker = Bunker(40, 110, x=games.screen.width/2, top=5)
-            games.screen.add(bunker)
-            bunker = Bunker(200, 40, x=games.screen.width/2, top=bunker.bottom)
-            games.screen.add(bunker)
-            bunker = Bunker(150, 40, left=5, y=550)
-            games.screen.add(bunker)
-            bunker = Bunker(150, 40, right=games.screen.width-5, y=550)
-            games.screen.add(bunker)
-            bunker = Bunker(40, 125, x=games.screen.width/2,
-                            bottom=games.screen.height-5)
-            games.screen.add(bunker)
-            for i in range(5):
-                bunker = Bunker(40, 40, x=games.screen.width*(i+1)/6,
-                                y=games.screen.height/2)
-                games.screen.add(bunker)
-        elif num == 13:#test
-            amo = Amo(games.screen.width/2-30, 50)
-            games.screen.add(amo)
-            amo = Amo(games.screen.width/2+30, 50)
-            games.screen.add(amo)
-            bunker = Bunker(40, 300, x=games.screen.width/4,
-                            y=games.screen.height/2, is_reflector=False)
-            games.screen.add(bunker)
-            bunker = Bunker(40, 300, x=games.screen.width/2,
-                            y=games.screen.height/2, is_reflector=True)
-            games.screen.add(bunker)
-            bunker = Bunker(40, 300, x=games.screen.width*3/4,
-                            y=games.screen.height/2, is_reflector=True)
             games.screen.add(bunker)
 
 game = Game()
